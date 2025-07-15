@@ -412,6 +412,9 @@
     try {
       const phone = formData.phone;
       const roistat_visit = getRoistatVisit();
+      // Новые поля
+      const site_url = window.location.href;
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const response = await fetch(`${CONFIG.serverUrl}/api/webhook`, {
         method: 'POST',
         headers: {
@@ -420,7 +423,9 @@
         body: JSON.stringify({
           popupId: CONFIG.popupId,
           phone: phone,
-          roistat_visit: roistat_visit
+          roistat_visit: roistat_visit,
+          site_url: site_url,
+          timezone: timezone
         })
       });
       const result = await response.json();
@@ -512,11 +517,17 @@
 
   // Форматирование номера при вводе (input)
   document.addEventListener('input', function(e) {
-    if (e.target && e.target.name === 'phone' && window.libphonenumber) {
-      try {
-        const phoneNumber = window.libphonenumber.parsePhoneNumber(e.target.value);
-        e.target.value = phoneNumber.formatInternational();
-      } catch (e) {}
+    if (e.target && e.target.name === 'phone') {
+      // Если первый символ не "+" и введена цифра — добавляем "+"
+      if (/^\d/.test(e.target.value)) {
+        e.target.value = '+' + e.target.value;
+      }
+      if (window.libphonenumber) {
+        try {
+          const phoneNumber = window.libphonenumber.parsePhoneNumber(e.target.value);
+          e.target.value = phoneNumber.formatInternational();
+        } catch (e) {}
+      }
     }
   }, true);
 

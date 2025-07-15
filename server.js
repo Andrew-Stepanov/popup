@@ -18,7 +18,9 @@ db.run(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     status TEXT,
     webhook_response TEXT,
-    full_json TEXT
+    full_json TEXT,
+    site_url TEXT,
+    timezone TEXT
   )
 `);
 
@@ -67,6 +69,9 @@ app.post('/api/webhook', async (req, res) => {
 
     // Prepare webhook data
     const roistat_visit = req.body.roistat_visit || req.cookies?.roistat_visit || '';
+    // Новые поля
+    const site_url = req.body.site_url || req.headers.referer || 'unknown';
+    const timezone = req.body.timezone || '';
     const webhookData = {
       title: `Заявка с ${popupConfig.label}`,
       name: name,
@@ -77,7 +82,9 @@ app.post('/api/webhook', async (req, res) => {
       fields: {
         site: req.headers.referer || 'unknown',
         source: popupId,
-        popup_label: popupConfig.label
+        popup_label: popupConfig.label,
+        site_url: site_url,
+        timezone: timezone
       }
     };
 
@@ -89,12 +96,14 @@ app.post('/api/webhook', async (req, res) => {
       created_at: new Date().toISOString(),
       status: 'pending',
       webhook_response: '',
-      full_json: JSON.stringify(req.body)
+      full_json: JSON.stringify(req.body),
+      site_url,
+      timezone
     };
     db.run(
-      `INSERT INTO submissions (phone, popupId, roistat_visit, created_at, status, webhook_response, full_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [submission.phone, submission.popupId, submission.roistat_visit, submission.created_at, submission.status, submission.webhook_response, submission.full_json],
+      `INSERT INTO submissions (phone, popupId, roistat_visit, created_at, status, webhook_response, full_json, site_url, timezone)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [submission.phone, submission.popupId, submission.roistat_visit, submission.created_at, submission.status, submission.webhook_response, submission.full_json, submission.site_url, submission.timezone],
       function(err) {
         if (err) {
           console.error('[DB] Ошибка сохранения заявки:', err.message);
@@ -104,14 +113,14 @@ app.post('/api/webhook', async (req, res) => {
       }
     );
 
-    // Send to external webhook
+    // Отвечаем клиенту сразу, не дожидаясь webhook
+    res.json({ success: true, message: 'Заявка отправлена успешно!' });
+
+    // Далее отправляем во внешний webhook асинхронно
     const webhookUrl = process.env.ROISTAT_WEBHOOK_URL;
     if (!webhookUrl) {
       console.error('[WEBHOOK] Не задан ROISTAT_WEBHOOK_URL');
-      return res.status(500).json({
-        success: false,
-        error: 'Webhook URL не настроен на сервере.'
-      });
+      return;
     }
     console.log('[WEBHOOK] Отправка запроса:', {
       url: webhookUrl,
@@ -138,7 +147,6 @@ app.post('/api/webhook', async (req, res) => {
         `UPDATE submissions SET status = ?, webhook_response = ? WHERE phone = ? AND created_at = ?`,
         ['sent', JSON.stringify(webhookResponse.data), phone, submission.created_at]
       );
-      res.json({ success: true, message: 'Заявка отправлена успешно!' });
     } catch (error) {
       if (error.response) {
         // Сервер ответил с ошибкой
@@ -146,7 +154,6 @@ app.post('/api/webhook', async (req, res) => {
           status: error.response.status,
           data: error.response.data
         });
-        // error:
         db.run(
           `UPDATE submissions SET status = ?, webhook_response = ? WHERE phone = ? AND created_at = ?`,
           ['error', JSON.stringify(error.response.data), phone, submission.created_at]
@@ -154,7 +161,6 @@ app.post('/api/webhook', async (req, res) => {
       } else if (error.request) {
         // Нет ответа
         console.error('[WEBHOOK] Нет ответа от сервера:', error.message);
-        // error:
         db.run(
           `UPDATE submissions SET status = ?, webhook_response = ? WHERE phone = ? AND created_at = ?`,
           ['error', JSON.stringify({ message: error.message }), phone, submission.created_at]
@@ -162,17 +168,12 @@ app.post('/api/webhook', async (req, res) => {
       } else {
         // Ошибка настройки
         console.error('[WEBHOOK] Ошибка настройки запроса:', error.message);
-        // error:
         db.run(
           `UPDATE submissions SET status = ?, webhook_response = ? WHERE phone = ? AND created_at = ?`,
           ['error', JSON.stringify({ message: error.message }), phone, submission.created_at]
         );
       }
       console.error('[WEBHOOK] Stacktrace:', error.stack);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Ошибка отправки заявки. Попробуйте позже.' 
-      });
     }
 
   } catch (error) {
