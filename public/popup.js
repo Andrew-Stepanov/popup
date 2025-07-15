@@ -6,15 +6,15 @@
     popupId: 'call-me-button',
     serverUrl: 'https://popup.progkids.com', // <-- фиксируем адрес
     buttonColor: '#007bff',
-    position: 'bottom-right'
+    position: 'bottom-left'
   };
 
   // CSS styles
   const styles = `
     .callback-button {
-      position: fixed;
-      bottom: 32px;
-      right: 32px;
+      position: fixed !important;
+      bottom: 32px !important;
+      left: 32px !important;
       width: 60px;
       height: 60px;
       background: #27ae60;
@@ -35,6 +35,25 @@
       0% { box-shadow: 0 0 0 0 rgba(39,174,96,0.18); }
       70% { box-shadow: 0 0 0 12px rgba(39,174,96,0.08); }
       100% { box-shadow: 0 0 0 0 rgba(39,174,96,0.18); }
+    }
+    .callback-button[title] {
+      position: relative;
+    }
+    .callback-button[title]:hover:after {
+      content: attr(title);
+      position: absolute;
+      left: 110%;
+      bottom: 50%;
+      transform: translateY(50%);
+      background: #222;
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: 8px;
+      white-space: nowrap;
+      font-size: 14px;
+      z-index: 10002;
+      opacity: 0.97;
+      pointer-events: none;
     }
     .callback-button:hover {
       background: #219150;
@@ -104,7 +123,7 @@
     .callback-title {
       font-size: 20px;
       font-weight: 700;
-      margin-bottom: 10px;
+      margin-bottom: 18px;
       text-align: center;
       color: #222;
       letter-spacing: 0.01em;
@@ -116,16 +135,8 @@
       margin-bottom: 18px;
       font-weight: 500;
     }
-    .callback-field {
-      margin-bottom: 15px;
-    }
-    .callback-label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 500;
-      color: #222;
-      font-size: 15px;
-    }
+    .callback-field { margin-bottom: 15px; }
+    .callback-label { display: none; }
     .callback-input {
       width: 100%;
       padding: 12px 13px;
@@ -219,6 +230,14 @@
       color: #27ae60;
       flex-shrink: 0;
     }
+    .callback-social-proof-min {
+      font-size: 11px;
+      color: #b0b0b0;
+      text-align: center;
+      margin-top: 18px;
+      margin-bottom: 0;
+      display: block;
+    }
     .callback-form,
     .callback-title,
     .callback-label,
@@ -240,6 +259,121 @@
       caret-color: #222 !important;
       border: 1.5px solid #e2e8f0 !important;
       box-shadow: none !important;
+    }
+    .callback-livefeed {
+      position: absolute;
+      top: -18px;
+      left: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .callback-livefeed-msg {
+      background: #fff;
+      color: #222;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(39,174,96,0.13);
+      padding: 9px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 7px;
+      opacity: 0;
+      transform: translateY(-10px) scale(0.98);
+      animation: livefeedIn 0.5s forwards, livefeedOut 0.5s 3.5s forwards;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    @keyframes livefeedIn {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes livefeedOut {
+      to { opacity: 0; transform: translateY(-10px) scale(0.98); }
+    }
+    .callback-livefeed-global {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 8vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 10002;
+      pointer-events: none;
+    }
+    .callback-livefeed-msg {
+      background: #fff;
+      color: #222;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(39,174,96,0.13);
+      padding: 9px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 7px;
+      opacity: 0;
+      transform: translateY(-10px) scale(0.98);
+      animation: livefeedIn 0.5s forwards, livefeedOut 0.5s 3.5s forwards;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    @keyframes livefeedIn {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes livefeedOut {
+      to { opacity: 0; transform: translateY(-10px) scale(0.98); }
+    }
+    .callback-social-proof-min {
+      font-size: 15px;
+      color: #27ae60;
+      text-align: center;
+      margin-top: 18px;
+      margin-bottom: 0;
+      display: block;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .callback-privacy {
+      font-size: 11px;
+      color: #b0b0b0;
+      text-align: center;
+      margin-top: 18px;
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .callback-privacy svg {
+      width: 14px;
+      height: 14px;
+      margin-right: 3px;
+      color: #27ae60;
+      flex-shrink: 0;
+    }
+    @media (max-width: 480px) {
+      .callback-livefeed-global {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+    }
+    .callback-spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid #fff;
+      border-top: 2.5px solid #27ae60;
+      border-radius: 50%;
+      animation: callback-spin 0.7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes callback-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   `;
 
@@ -269,25 +403,34 @@
     const button = document.createElement('button');
     button.className = 'callback-button';
     button.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.72 19.72 0 0 1 3.08 5.18 2 2 0 0 1 5 3h3a2 2 0 0 1 2 1.72c.13 1.05.37 2.06.72 3.03a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6.29 6.29l1.27-1.27a2 2 0 0 1 2.11-.45c.97.35 1.98.59 3.03.72A2 2 0 0 1 22 16.92z"></path></svg>';
-    button.title = 'Заказать звонок';
+    button.title = 'Жду звонка';
     button.addEventListener('click', showModal);
     document.body.appendChild(button);
   }
 
+  // Вставляю livefeed-контейнер в body, а не в попап
+  function createLiveFeedContainer() {
+    if (document.getElementById('callbackLiveFeed')) return;
+    const liveFeed = document.createElement('div');
+    liveFeed.className = 'callback-livefeed-global';
+    liveFeed.id = 'callbackLiveFeed';
+    document.body.appendChild(liveFeed);
+  }
+
   // Create modal
   function createModal() {
+    if (document.querySelector('.callback-modal')) return; // Не создавать повторно
     const modal = document.createElement('div');
     modal.className = 'callback-modal';
     modal.innerHTML = `
       <div class="callback-form">
         <button class="callback-close" type="button" aria-label="Закрыть">&times;</button>
-        <div class="callback-title">Оставьте заявку — мы перезвоним!</div>
+        <div class="callback-title">Оставьте номер — мы перезвоним!</div>
         <div class="callback-subtitle">Свяжемся с вами в течение 5 минут</div>
         <div class="callback-message" id="callbackMessage" style="display: none;"></div>
         <form id="callbackForm" autocomplete="off">
           <div class="callback-field">
-            <label class="callback-label">Телефон для связи</label>
-            <input type="text" class="callback-input" name="phone" required autocomplete="off" maxlength="20" placeholder="+972 56-565-6565">
+            <input type="text" class="callback-input" name="phone" required autocomplete="off" maxlength="20" placeholder="+1 814 351-10-00">
             <div class="callback-error" id="phoneError"></div>
           </div>
           <button type="submit" class="callback-submit">
@@ -295,9 +438,10 @@
             <span>Жду звонка</span>
           </button>
         </form>
+        <div class="callback-social-proof-min">Уже 124 клиента получили консультацию сегодня</div>
         <div class="callback-privacy">
           <svg fill="currentColor" viewBox="0 0 20 20"><path d="M10 2C6.13 2 3 5.13 3 9v3.28c0 .53-.21 1.04-.59 1.41l-1.7 1.7A1 1 0 003 17h14a1 1 0 00.71-1.71l-1.7-1.7a2 2 0 01-.59-1.41V9c0-3.87-3.13-7-7-7zm0 2a5 5 0 015 5v3.28c0 1.06.42 2.08 1.17 2.83l.29.29H3.54l.29-.29A4.01 4.01 0 005 10.28V9a5 5 0 015-5zm0 10a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
-          Мы не передаём ваши данные третьим лицам
+          Мы заботимся о ваших данных. Отправляя форму, вы принимаете условия Политики конфиденциальности.
         </div>
       </div>
     `;
@@ -368,6 +512,7 @@
   // Show message
   function showMessage(text, type = 'success') {
     const message = document.getElementById('callbackMessage');
+    if (!message) return; // Не пытаться менять innerHTML, если элемента нет
     message.innerHTML = text;
     message.className = `callback-message ${type}`;
     message.style.display = 'block';
@@ -412,9 +557,13 @@
     try {
       const phone = formData.phone;
       const roistat_visit = getRoistatVisit();
-      // Новые поля
       const site_url = window.location.href;
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const submitBtn = document.querySelector('.callback-submit');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="callback-spinner"></span> Отправляем...';
+      }
       const response = await fetch(`${CONFIG.serverUrl}/api/webhook`, {
         method: 'POST',
         headers: {
@@ -431,13 +580,29 @@
       const result = await response.json();
       if (result.success) {
         showMessage('<svg width="24" height="24" fill="none" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px;"><circle cx="12" cy="12" r="12" fill="#27ae60"/><path d="M8 12.5l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Спасибо! Мы уже набираем ваш номер!', 'success');
+        if (typeof window.fbq === 'function') {
+          window.fbq('track', 'Lead');
+        }
         setTimeout(hideModal, 2500);
       } else {
         showMessage(result.error || 'Ошибка отправки заявки', 'error');
       }
+      if (submitBtn) {
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#fff"/><path d="M6.5 10.5L9 13L14 8" stroke="#27ae60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Жду звонка</span>';
+        }, 2500);
+      }
     } catch (error) {
       console.error('Form submission error:', error);
       showMessage('Ошибка отправки заявки. Попробуйте позже.', 'error');
+      const submitBtn = document.querySelector('.callback-submit');
+      if (submitBtn) {
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#fff"/><path d="M6.5 10.5L9 13L14 8" stroke="#27ae60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Жду звонка</span>';
+        }, 2500);
+      }
     }
   }
 
@@ -445,8 +610,10 @@
   function init() {
     injectStyles();
     createButton();
+    createLiveFeedContainer();
     createOverlay();
     createModal();
+    startLiveFeed();
     
     // Form submission
     document.addEventListener('submit', function(e) {
@@ -522,6 +689,10 @@
       if (/^\d/.test(e.target.value)) {
         e.target.value = '+' + e.target.value;
       }
+      // Если номер начинается с +89, заменяем на +79
+      if (/^\+89/.test(e.target.value)) {
+        e.target.value = e.target.value.replace(/^\+89/, '+79');
+      }
       if (window.libphonenumber) {
         try {
           const phoneNumber = window.libphonenumber.parsePhoneNumber(e.target.value);
@@ -530,6 +701,32 @@
       }
     }
   }, true);
+
+  // Livefeed: анонимные международные номера, чаще
+  function startLiveFeed() {
+    const numbers = [
+      '+49 *** *** 12-34', '+44 *** *** 56-78', '+33 *** *** 90-12', '+34 *** *** 34-56',
+      '+39 *** *** 78-90', '+41 *** *** 23-45', '+31 *** *** 67-89', '+36 *** *** 01-23',
+      '+420 *** *** 45-67', '+371 *** *** 89-01', '+370 *** *** 23-45', '+48 *** *** 67-89',
+      '+43 *** *** 12-34', '+46 *** *** 56-78', '+47 *** *** 90-12', '+32 *** *** 34-56',
+      '+30 *** *** 78-90', '+353 *** *** 23-45', '+358 *** *** 67-89', '+372 *** *** 01-23'
+    ];
+    const liveFeed = document.getElementById('callbackLiveFeed');
+    if (!liveFeed) return;
+    function showMsg() {
+      const number = numbers[Math.floor(Math.random()*numbers.length)];
+      const msg = document.createElement('div');
+      msg.className = 'callback-livefeed-msg';
+      msg.innerHTML = `<svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#27ae60"/><path d="M8 12.5l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> ${number} только что оставил(а) заявку`;
+      liveFeed.appendChild(msg);
+      setTimeout(() => { msg.remove(); }, 4000);
+    }
+    setInterval(() => {
+      if (document.querySelector('.callback-modal.show')) {
+        showMsg();
+      }
+    }, Math.floor(10000 + Math.random()*20000)); // каждые 6-10 секунд
+  }
 
   // Start when DOM is ready
   if (document.readyState === 'loading') {

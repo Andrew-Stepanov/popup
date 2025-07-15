@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const axios = require('axios');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -25,6 +24,7 @@ db.run(`
 `);
 
 const app = express();
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 3000;
 
 // Middleware
@@ -34,19 +34,11 @@ app.use(express.json());
 app.use(express.static('public'));
 app.use(cookieParser());
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
-});
-app.use('/api/', limiter);
-
 // Load popups configuration
 const popups = require('./data/popups');
 
 // Webhook endpoint
-app.post('/api/webhook', async (req, res) => {
+app.post('/api/webhook', (req, res) => {
   try {
     const { popupId, name, phone, email, comment } = req.body;
     
@@ -126,18 +118,17 @@ app.post('/api/webhook', async (req, res) => {
       url: webhookUrl,
       data: webhookData
     });
-    try {
-      const webhookResponse = await axios.post(
-        webhookUrl,
-        webhookData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'CallbackFormService/1.0'
-          },
-          timeout: 10000
-        }
-      );
+    axios.post(
+      webhookUrl,
+      webhookData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'CallbackFormService/1.0'
+        },
+        timeout: 10000
+      }
+    ).then(webhookResponse => {
       console.log('[WEBHOOK] Ответ получен:', {
         status: webhookResponse.status,
         data: webhookResponse.data
@@ -147,7 +138,7 @@ app.post('/api/webhook', async (req, res) => {
         `UPDATE submissions SET status = ?, webhook_response = ? WHERE phone = ? AND created_at = ?`,
         ['sent', JSON.stringify(webhookResponse.data), phone, submission.created_at]
       );
-    } catch (error) {
+    }).catch(error => {
       if (error.response) {
         // Сервер ответил с ошибкой
         console.error('[WEBHOOK] Ошибка ответа:', {
@@ -174,8 +165,7 @@ app.post('/api/webhook', async (req, res) => {
         );
       }
       console.error('[WEBHOOK] Stacktrace:', error.stack);
-    }
-
+    });
   } catch (error) {
     console.error('Webhook error:', error.message);
     
