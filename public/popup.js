@@ -11,10 +11,16 @@
 
   // CSS styles
   const styles = `
-    .callback-button {
+    .callback-button-wrapper {
       position: fixed !important;
       bottom: 32px !important;
       left: 32px !important;
+      display: flex;
+      align-items: center;
+      z-index: 10000;
+    }
+    .callback-button {
+      position: static !important;
       width: 60px;
       height: 60px;
       background: #27ae60;
@@ -24,37 +30,45 @@
       font-size: 28px;
       cursor: pointer;
       box-shadow: 0 4px 24px rgba(39,174,96,0.18);
-      z-index: 10000;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: box-shadow 0.18s, background 0.18s, transform 0.18s;
       animation: pulse 1.5s infinite;
+      padding: 0;
+      font-weight: 700;
+      margin-right: 16px;
     }
+    .callback-button-label {
+      background: #222;
+      color: #fff;
+      padding: 6px 13px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(39,174,96,0.13);
+      letter-spacing: 0.01em;
+      user-select: none;
+      pointer-events: auto;
+      display: block;
+      line-height: 1.18;
+      text-align: left;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.18s, color 0.18s;
+    }
+    .callback-button-label:active, .callback-button-label:focus {
+      background: #333;
+      color: #27ae60;
+    }
+    .callback-button-label span { display: block; }
     @keyframes pulse {
       0% { box-shadow: 0 0 0 0 rgba(39,174,96,0.18); }
       70% { box-shadow: 0 0 0 12px rgba(39,174,96,0.08); }
       100% { box-shadow: 0 0 0 0 rgba(39,174,96,0.18); }
     }
-    .callback-button[title] {
-      position: relative;
-    }
-    .callback-button[title]:hover:after {
-      content: attr(title);
-      position: absolute;
-      left: 110%;
-      bottom: 50%;
-      transform: translateY(50%);
-      background: #222;
-      color: #fff;
-      padding: 7px 14px;
-      border-radius: 8px;
-      white-space: nowrap;
-      font-size: 14px;
-      z-index: 10002;
-      opacity: 0.97;
-      pointer-events: none;
-    }
+    .callback-button[title]:hover:after { display: none; }
     .callback-button:hover {
       background: #219150;
       box-shadow: 0 8px 32px rgba(39,174,96,0.22);
@@ -354,6 +368,55 @@
       color: #27ae60;
       flex-shrink: 0;
     }
+    .callback-success-block {
+      text-align: center;
+      margin: 0 0 18px 0;
+    }
+    .callback-success-thank {
+      color: #27ae60;
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+    .callback-success-desc {
+      color: #888;
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .callback-success-phone {
+      color: #27ae60;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 18px;
+      margin-top: 8px;
+      letter-spacing: 0.02em;
+    }
+    .callback-social-proof-min {
+      font-size: 15px;
+      color: #27ae60;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .callback-privacy {
+      font-size: 11px;
+      color: #b0b0b0;
+      text-align: center;
+      margin-top: 18px;
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .callback-privacy svg {
+      width: 14px;
+      height: 14px;
+      margin-right: 3px;
+      color: #27ae60;
+      flex-shrink: 0;
+    }
     @media (max-width: 480px) {
       .callback-livefeed-global {
         padding-left: 12px;
@@ -374,6 +437,83 @@
     @keyframes callback-spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+    .callback-phone-success {
+      text-align: center;
+      font-size: 17px;
+      color: #27ae60;
+      font-weight: 600;
+      margin-bottom: 18px;
+      margin-top: 10px;
+      letter-spacing: 0.01em;
+      word-break: break-all;
+    }
+    .callback-phone-success-thank {
+      color: #27ae60;
+      font-size: 20px;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .callback-phone-success-desc {
+      color: #27ae60;
+      font-size: 16px;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 7px;
+    }
+    .callback-phone-number {
+      display: block;
+      color: #27ae60;
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 7px;
+      margin-bottom: 0;
+      letter-spacing: 0.01em;
+      word-break: break-all;
+    }
+    .callback-button-text {
+      display: none;
+    }
+    .callback-button-tooltip {
+      position: absolute;
+      left: 70px;
+      bottom: 50%;
+      transform: translateY(50%);
+      background: #222;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      white-space: nowrap;
+      font-size: 15px;
+      font-weight: 600;
+      z-index: 10001;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s, transform 0.18s;
+      box-shadow: 0 4px 16px rgba(39,174,96,0.13);
+    }
+    .callback-button:hover + .callback-button-tooltip {
+      opacity: 1;
+      transform: translateY(50%) scale(1.04);
+      pointer-events: auto;
+    }
+    @media (max-width: 600px) {
+      .callback-button-wrapper {
+        left: 16px !important;
+        bottom: 30px !important;
+      }
+      .callback-button {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+        margin-right: 7px;
+      }
+      .callback-button-label {
+        font-size: 12.5px;
+        padding: 5px 8px;
+        border-radius: 8px;
+      }
     }
   `;
 
@@ -400,12 +540,21 @@
 
   // Create button
   function createButton() {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'callback-button-wrapper';
     const button = document.createElement('button');
     button.className = 'callback-button';
     button.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.72 19.72 0 0 1 3.08 5.18 2 2 0 0 1 5 3h3a2 2 0 0 1 2 1.72c.13 1.05.37 2.06.72 3.03a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6.29 6.29l1.27-1.27a2 2 0 0 1 2.11-.45c.97.35 1.98.59 3.03.72A2 2 0 0 1 22 16.92z"></path></svg>';
-    button.title = 'Жду звонка';
+    button.title = '';
     button.addEventListener('click', showModal);
-    document.body.appendChild(button);
+    const labelBtn = document.createElement('button');
+    labelBtn.type = 'button';
+    labelBtn.className = 'callback-button-label';
+    labelBtn.innerHTML = '<span>Заказать</span><span>звонок</span>';
+    labelBtn.addEventListener('click', showModal);
+    wrapper.appendChild(button);
+    wrapper.appendChild(labelBtn);
+    document.body.appendChild(wrapper);
   }
 
   // Вставляю livefeed-контейнер в body, а не в попап
@@ -560,6 +709,9 @@
       const site_url = window.location.href;
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const submitBtn = document.querySelector('.callback-submit');
+      const phoneInput = document.querySelector('.callback-input[name="phone"]');
+      const phoneField = phoneInput?.closest('.callback-field');
+      const form = document.getElementById('callbackForm');
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="callback-spinner"></span> Отправляем...';
@@ -579,30 +731,76 @@
       });
       const result = await response.json();
       if (result.success) {
-        showMessage('<svg width="24" height="24" fill="none" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:6px;"><circle cx="12" cy="12" r="12" fill="#27ae60"/><path d="M8 12.5l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Спасибо! Мы уже набираем ваш номер!', 'success');
-        if (typeof window.fbq === 'function') {
-          window.fbq('track', 'Lead');
+        // Скрываем поле и кнопку, показываем красивый блок успеха
+        if (phoneField) phoneField.style.display = 'none';
+        if (submitBtn) submitBtn.style.display = 'none';
+        // Скрываем заголовок и social proof
+        const title = document.querySelector('.callback-title');
+        if (title) title.style.display = 'none';
+        const socialProof = document.querySelector('.callback-social-proof-min');
+        if (socialProof) socialProof.style.display = 'none';
+        // Удаляем старый блок успеха, если есть
+        let successBlock = document.querySelector('.callback-success-block');
+        if (successBlock) successBlock.remove();
+        // Создаём новый блок успеха
+        successBlock = document.createElement('div');
+        successBlock.className = 'callback-success-block';
+        successBlock.innerHTML = `
+          <div class="callback-success-thank">Спасибо!</div>
+          <div class="callback-success-desc">Мы уже набираем ваш номер:</div>
+          <div class="callback-success-phone">${phone}</div>
+          <button type="button" class="callback-reset-btn" style="margin-top: 10px; padding: 8px 18px; background: #f3f3f3; color: #27ae60; border: 1.5px solid #27ae60; border-radius: 7px; font-size: 15px; font-weight: 600; cursor: pointer;">Ошибся номером</button>
+        `;
+        // Вставляем блок после формы
+        form.parentNode.insertBefore(successBlock, form.nextSibling);
+        // Добавляем обработчик на кнопку сброса
+        const resetBtn = successBlock.querySelector('.callback-reset-btn');
+        if (resetBtn) {
+          resetBtn.addEventListener('click', function() {
+            // Сбросить форму и показать снова поля
+            successBlock.remove();
+            if (phoneField) phoneField.style.display = '';
+            if (submitBtn) submitBtn.style.display = '';
+            if (title) title.style.display = '';
+            if (socialProof) socialProof.style.display = '';
+            form.reset();
+            // Сброс ошибок
+            form.querySelectorAll('.callback-input').forEach(input => input.classList.remove('error'));
+            document.querySelectorAll('.callback-error').forEach(error => { error.style.display = 'none'; });
+            // Сфокусировать на поле телефона
+            const phoneInput = form.querySelector('.callback-input[name="phone"]');
+            if (phoneInput) phoneInput.focus();
+          });
         }
-        setTimeout(hideModal, 2500);
       } else {
         showMessage(result.error || 'Ошибка отправки заявки', 'error');
+        // Показываем поля обратно
+        if (phoneField) phoneField.style.display = '';
+        if (submitBtn) submitBtn.style.display = '';
+        // Скрываем блок успеха
+        let successBlock = document.querySelector('.callback-success-block');
+        if (successBlock) successBlock.style.display = 'none';
       }
       if (submitBtn) {
-        setTimeout(() => {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#fff"/><path d="M6.5 10.5L9 13L14 8" stroke="#27ae60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Жду звонка</span>';
-        }, 2500);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#fff"/><path d="M6.5 10.5L9 13L14 8" stroke="#27ae60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Жду звонка</span>';
       }
     } catch (error) {
       console.error('Form submission error:', error);
       showMessage('Ошибка отправки заявки. Попробуйте позже.', 'error');
       const submitBtn = document.querySelector('.callback-submit');
       if (submitBtn) {
-        setTimeout(() => {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#fff"/><path d="M6.5 10.5L9 13L14 8" stroke="#27ae60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Жду звонка</span>';
-        }, 2500);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="10" fill="#fff"/><path d="M6.5 10.5L9 13L14 8" stroke="#27ae60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Жду звонка</span>';
       }
+      // Показываем поля обратно
+      const phoneField = document.querySelector('.callback-input[name="phone"]')?.closest('.callback-field');
+      if (phoneField) phoneField.style.display = '';
+      const submitBtn2 = document.querySelector('.callback-submit');
+      if (submitBtn2) submitBtn2.style.display = '';
+      // Скрываем блок успеха
+      let successBlock = document.querySelector('.callback-success-block');
+      if (successBlock) successBlock.style.display = 'none';
     }
   }
 
