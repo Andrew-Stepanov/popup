@@ -923,7 +923,7 @@
       if (document.querySelector('.callback-modal.show')) {
         showMsg();
       }
-    }, Math.floor(10000 + Math.random()*20000)); // каждые 6-10 секунд
+    }, Math.floor(6000 + Math.random()*14000)); // каждые 6-10 секунд
   }
 
   // Start when DOM is ready

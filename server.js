@@ -19,7 +19,8 @@ db.run(`
     webhook_response TEXT,
     full_json TEXT,
     site_url TEXT,
-    timezone TEXT
+    timezone TEXT,
+    child_age TEXT
   )
 `);
 
@@ -40,7 +41,7 @@ const popups = require('./data/popups');
 // Webhook endpoint
 app.post('/api/webhook', (req, res) => {
   try {
-    const { popupId, name, phone, email, comment } = req.body;
+    const { popupId, name, phone, email, comment, child_age } = req.body;
     
     // Validation
     if (!phone) {
@@ -71,6 +72,7 @@ app.post('/api/webhook', (req, res) => {
       phone: phone,
       comment: comment || '',
       roistat_visit: roistat_visit,
+      child_age: child_age || '',
       fields: {
         site: req.headers.referer || 'unknown',
         source: popupId,
@@ -90,12 +92,13 @@ app.post('/api/webhook', (req, res) => {
       webhook_response: '',
       full_json: JSON.stringify(req.body),
       site_url,
-      timezone
+      timezone,
+      child_age: child_age || ''
     };
     db.run(
-      `INSERT INTO submissions (phone, popupId, roistat_visit, created_at, status, webhook_response, full_json, site_url, timezone)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [submission.phone, submission.popupId, submission.roistat_visit, submission.created_at, submission.status, submission.webhook_response, submission.full_json, submission.site_url, submission.timezone],
+      `INSERT INTO submissions (phone, popupId, roistat_visit, created_at, status, webhook_response, full_json, site_url, timezone, child_age)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [submission.phone, submission.popupId, submission.roistat_visit, submission.created_at, submission.status, submission.webhook_response, submission.full_json, submission.site_url, submission.timezone, submission.child_age],
       function(err) {
         if (err) {
           console.error('[DB] Ошибка сохранения заявки:', err.message);
