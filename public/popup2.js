@@ -48,18 +48,6 @@
   }
 
   // --- UI ---
-  function createButton() {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'twostep-popup-wrapper';
-    const button = document.createElement('button');
-    button.className = 'twostep-popup-btn';
-    button.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.72 19.72 0 0 1 3.08 5.18 2 2 0 0 1 5 3h3a2 2 0 0 1 2 1.72c.13 1.05.37 2.06.72 3.03a2 2 0 0 1-.45 2.11l-1.27 1.27a16 16 0 0 0 6.29 6.29l1.27-1.27a2 2 0 0 1 2.11-.45c.97.35 1.98.59 3.03.72A2 2 0 0 1 22 16.92z"></path></svg>';
-    button.title = 'Оставить заявку';
-    button.addEventListener('click', showModal);
-    wrapper.appendChild(button);
-    document.body.appendChild(wrapper);
-  }
-
   function createOverlay() {
     let overlay = document.querySelector('.twostep-modal-overlay');
     if (!overlay) {
@@ -132,23 +120,75 @@
     }
   }
 
+  // Функция для получения roistat_visit (как в popup.js)
+  function getRoistatVisit() {
+    // 1. Из куки
+    const match = document.cookie.match(/(?:^|; )roistat_visit=([^;]*)/);
+    if (match) return decodeURIComponent(match[1]);
+    // 2. Из URL ?roistat=...
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('roistat')) return urlParams.get('roistat');
+    // 3. Из URL ?rs=...
+    if (urlParams.get('rs')) return urlParams.get('rs');
+    return '';
+  }
+
   // --- Step 1 ---
+  // Динамический social proof (фиксированный на день)
+  function seededRandom(seed) {
+    let x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  }
+  function getLeadsCountToday() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = now.getMonth() + 1;
+    const dd = now.getDate();
+    const daySeed = yyyy * 10000 + mm * 100 + dd;
+    // Диапазоны
+    const min = 30, max = 60;      // стартовое
+    const minEnd = 150, maxEnd = 220; // финальное
+    // Детерминированно для дня
+    const start = Math.round(min + (max - min) * seededRandom(daySeed));
+    const end = Math.round(minEnd + (maxEnd - minEnd) * seededRandom(daySeed + 1));
+    // Время
+    const startHour = 0, endHour = 23 + 59/60;
+    const currentHour = now.getHours() + now.getMinutes() / 60;
+    if (currentHour < startHour) return start;
+    if (currentHour > endHour) return end;
+    // Линейный рост
+    const progress = (currentHour - startHour) / (endHour - startHour);
+    const count = Math.round(start + (end - start) * progress);
+    return count;
+  }
+
   function renderStep1() {
     const container = document.getElementById('twostepFormContainer');
     if (!container) return;
     container.innerHTML = `
       <button class="twostep-close" type="button" aria-label="Закрыть">&times;</button>
-      <div class="twostep-title">Введите ваш номер телефона</div>
+      <div class="twostep-title">Запишитесь на бесплатный пробный урок</div>
       <div class="twostep-message" id="twostepMessage1"></div>
       <form id="twostepForm1" autocomplete="off">
         <div class="twostep-field">
-          <input type="text" class="twostep-input" name="phone" required autocomplete="off" maxlength="20" placeholder="+7 999 123-45-67">
+          <label for="twostep-phone" style="font-size:15px;font-weight:500;display:block;margin-bottom:6px;">Ваш телефон</label>
+          <input id="twostep-phone" type="text" class="twostep-input" name="phone" required autocomplete="off" maxlength="20" placeholder="+7 999 123-45-67">
         </div>
-        <button type="submit" class="twostep-submit">Далее</button>
+        <button type="submit" class="twostep-submit">Записаться на пробный урок</button>
+        <div style="font-size:12px;color:#888;text-align:center;margin-top:12px;line-height:1.5;">
+          Отправляя заявку, вы соглашаетесь с <a href="/privacy-policy" target="_blank" style="color:#27ae60;text-decoration:underline;">политикой конфиденциальности</a>.
+        </div>
       </form>
+      <div class="twostep-social-proof" style="margin-top:18px;font-size:13px;color:#27ae60;text-align:center;">
+        Уже <span id="twostep-leads-count"></span> родителей записались сегодня
+      </div>
     `;
     container.querySelector('.twostep-close').addEventListener('click', hideModal);
     document.getElementById('twostepForm1').addEventListener('submit', onStep1Submit);
+    // Обновить social proof
+    const leadsCount = getLeadsCountToday();
+    const leadsCountEl = document.getElementById('twostep-leads-count');
+    if (leadsCountEl) leadsCountEl.textContent = leadsCount;
   }
 
   function validatePhone(phone) {
@@ -173,27 +213,43 @@
 
   async function onStep1Submit(e) {
     e.preventDefault();
-    const phone = e.target.phone.value.trim();
+    const form = e.target;
+    const submitBtn = form.querySelector('.twostep-submit');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Отправляем...';
+    }
+    const phone = form.phone.value.trim();
     if (!validatePhone(phone)) {
       showMessage1('Введите корректный номер телефона (международный формат)', 'error');
-      e.target.phone.classList.add('error');
+      form.phone.classList.add('error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Записаться на пробный урок';
+      }
       return;
     }
-    e.target.phone.classList.remove('error');
+    form.phone.classList.remove('error');
     showMessage1('', '');
     // Сохраняем телефон и инфо
     savedPhone = phone;
     savedPage = window.location.href;
     savedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    // Отправляем первый этап (только телефон, страница, таймзона)
+    const roistat_visit = getRoistatVisit();
+    // Отправляем первый этап (только телефон, страница, таймзона, roistat_visit)
     const result = await sendWebhook({
       popupId: CONFIG.popupId,
       phone: phone,
       site_url: savedPage,
-      timezone: savedTimezone
+      timezone: savedTimezone,
+      roistat_visit: roistat_visit
     });
     if (!result.success) {
       showMessage1(result.error, 'error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Записаться на пробный урок';
+      }
       return;
     }
     // Переходим ко второму этапу только если всё ок
@@ -210,15 +266,29 @@
       <div class="twostep-message" id="twostepMessage2"></div>
       <form id="twostepForm2" autocomplete="off">
         <div class="twostep-field">
-          <input type="text" class="twostep-input" name="name" required placeholder="Ваше имя">
+          <label for="twostep-name" style="font-size:15px;font-weight:500;display:block;margin-bottom:6px;">Ваше имя</label>
+          <input id="twostep-name" type="text" class="twostep-input" name="name" required placeholder="Введите имя">
         </div>
         <div class="twostep-field">
-          <input type="email" class="twostep-input" name="email" required placeholder="Email">
+          <label for="twostep-email" style="font-size:15px;font-weight:500;display:block;margin-bottom:6px;">Email для подтверждения</label>
+          <input id="twostep-email" type="email" class="twostep-input" name="email" required placeholder="Введите email">
         </div>
         <div class="twostep-field">
-          <input type="number" class="twostep-input" name="child_age" required min="1" max="25" placeholder="Сколько лет ребенку?">
+          <label for="twostep-age" style="font-size:15px;font-weight:500;display:block;margin-bottom:6px;">Сколько лет ребёнку?</label>
+          <input id="twostep-age" type="number" class="twostep-input" name="child_age" required min="1" max="25" placeholder="Возраст ребёнка">
         </div>
-        <button type="submit" class="twostep-submit">Отправить</button>
+        <div class="twostep-field">
+          <label for="twostep-calltime" style="font-size:15px;font-weight:500;display:block;margin-bottom:6px;">Когда вам удобно поговорить?</label>
+          <select id="twostep-calltime" class="twostep-input" name="call_time" required style="width:100%">
+            <option value="" disabled selected>Выберите время</option>
+            <option value="9:00–12:00">9:00–12:00</option>
+            <option value="12:00–15:00">12:00–15:00</option>
+            <option value="15:00–18:00">15:00–18:00</option>
+            <option value="18:00–21:00">18:00–21:00</option>
+            <option value="В любое время">В любое время</option>
+          </select>
+        </div>
+        <button type="submit" class="twostep-submit">Завершить запись</button>
       </form>
     `;
     container.querySelector('.twostep-close').addEventListener('click', hideModal);
@@ -235,18 +305,36 @@
 
   async function onStep2Submit(e) {
     e.preventDefault();
-    const name = e.target.name.value.trim();
-    const email = e.target.email.value.trim();
-    const child_age = e.target.child_age.value.trim();
-    if (!name) { showMessage2('Введите имя', 'error'); e.target.name.classList.add('error'); return; }
-    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showMessage2('Введите корректный email', 'error'); e.target.email.classList.add('error'); return; }
-    if (!child_age || isNaN(child_age) || child_age < 1 || child_age > 25) { showMessage2('Введите возраст ребенка от 1 до 25', 'error'); e.target.child_age.classList.add('error'); return; }
-    e.target.name.classList.remove('error');
-    e.target.email.classList.remove('error');
-    e.target.child_age.classList.remove('error');
+    const form = e.target;
+    const submitBtn = form.querySelector('.twostep-submit');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Отправляем...';
+    }
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
+    const child_age = form.child_age.value.trim();
+    const call_time = form.call_time.value.trim();
+    let hasError = false;
+    if (!name) { showMessage2('Введите имя', 'error'); form.name.classList.add('error'); hasError = true; }
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showMessage2('Введите корректный email', 'error'); form.email.classList.add('error'); hasError = true; }
+    if (!child_age || isNaN(child_age) || child_age < 1 || child_age > 25) { showMessage2('Введите возраст ребенка от 1 до 25', 'error'); form.child_age.classList.add('error'); hasError = true; }
+    if (!call_time) { showMessage2('Выберите удобное время для звонка', 'error'); form.call_time.classList.add('error'); hasError = true; }
+    if (hasError) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Завершить запись';
+      }
+      return;
+    }
+    form.name.classList.remove('error');
+    form.email.classList.remove('error');
+    form.child_age.classList.remove('error');
+    form.call_time.classList.remove('error');
     showMessage2('', '');
+    const roistat_visit = getRoistatVisit();
     // Формируем comment
-    const comment = `Возраст ребёнка: ${child_age}`;
+    const comment = `Возраст ребёнка: ${child_age}, Удобное время для звонка: ${call_time}, Часовой пояс: ${savedTimezone}`;
     // Логируем отправляемые данные
     const dataToSend = {
       popupId: CONFIG.popupId,
@@ -254,15 +342,21 @@
       name: name,
       email: email,
       child_age: child_age,
+      call_time: call_time,
       comment: comment,
       site_url: savedPage,
-      timezone: savedTimezone
+      timezone: savedTimezone,
+      roistat_visit: roistat_visit
     };
     console.log('[popup2.js] Отправка данных второго этапа:', dataToSend);
     // Отправляем второй этап (все поля)
     const result = await sendWebhook(dataToSend);
     if (!result.success) {
       showMessage2(result.error, 'error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Завершить запись';
+      }
       return;
     }
     // Показываем успех
@@ -274,20 +368,70 @@
     if (!container) return;
     container.innerHTML = `
       <div class="twostep-success-block">
-        <div class="twostep-success-thank">Спасибо!</div>
-        <div class="twostep-success-desc">Ваша заявка успешно отправлена.<br>Мы свяжемся с вами в ближайшее время.</div>
+        <div class="twostep-success-thank" style="color:#27ae60;font-size:22px;font-weight:800;margin-top:10px;margin-bottom:8px;">Заявка принята!</div>
+        <div class="twostep-success-desc" style="margin-bottom:10px;color:#444;font-size:16px;">Менеджер скоро свяжется с вами.</div>
+        <div style="font-size:15px;color:#222;margin-bottom:10px;">Мы позвоним вам на номер:<br><b>${savedPhone}</b></div>
+        <div style="font-size:15px;color:#222;margin-bottom:10px;">Вы также можете написать нам прямо сейчас:</div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-bottom:18px;">
+          <a href="https://t.me/schoolprogkids" target="_blank" class="messenger-btn messenger-telegram">
+            <span class="messenger-icon"> <svg width="20" height="20" viewBox="0 0 240 240" fill="none"><circle cx="120" cy="120" r="120" fill="#229ED9"/><path d="M180 72L60 120l36 12 12 36 18-24 30 24 24-96z" fill="#fff"/></svg> </span>
+            <span>Telegram</span>
+          </a>
+          <a href="https://api.whatsapp.com/send/?phone=18143511030" target="_blank" class="messenger-btn messenger-whatsapp">
+            <span class="messenger-icon"> <svg width="20" height="20" viewBox="0 0 240 240" fill="none"><circle cx="120" cy="120" r="120" fill="#25D366"/><path d="M180 120c0-33.137-26.863-60-60-60s-60 26.863-60 60c0 10.137 2.637 19.663 7.263 27.863L60 180l32.137-7.263C100.337 177.363 109.863 180 120 180c33.137 0 60-26.863 60-60z" fill="#fff"/></svg> </span>
+            <span>WhatsApp</span>
+          </a>
+        </div>
       </div>
       <button class="twostep-submit" onclick="window.location.reload()">Закрыть</button>
+      <style>
+        .messenger-btn {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          border-radius: 22px;
+          padding: 8px 18px;
+          font-size: 15px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+          box-shadow: 0 2px 8px rgba(39,174,96,0.08);
+          outline: none;
+          border: none;
+          cursor: pointer;
+          min-width: 0;
+        }
+        .messenger-telegram {
+          background: #229ED9;
+          color: #fff;
+        }
+        .messenger-whatsapp {
+          background: #25D366;
+          color: #fff;
+        }
+        .messenger-btn:hover, .messenger-btn:focus {
+          filter: brightness(1.08);
+          box-shadow: 0 4px 16px rgba(39,174,96,0.13);
+          transform: translateY(-2px) scale(1.04);
+          text-decoration: none;
+        }
+        .messenger-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      </style>
     `;
   }
 
   // --- Init ---
   function init() {
     injectStyles();
-    createButton();
     createOverlay();
     createModal();
     loadLibPhoneNumber(() => {});
+    // Делаем showModal глобальной для вызова из Webflow
+    window.openTrialPopup = showModal;
   }
 
   if (document.readyState === 'loading') {
