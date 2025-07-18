@@ -172,7 +172,7 @@
       <form id="twostepForm1" autocomplete="off">
         <div class="twostep-field">
           <label for="twostep-phone" style="font-size:15px;font-weight:500;display:block;margin-bottom:6px;">Ваш телефон</label>
-          <input id="twostep-phone" type="text" class="twostep-input" name="phone" required autocomplete="off" maxlength="20" placeholder="+7 999 123-45-67">
+          <input id="twostep-phone" type="text" class="twostep-input" name="phone" required autocomplete="off" maxlength="20" placeholder="+1 (999) 123-45-67">
         </div>
         <button type="submit" class="twostep-submit">Записаться на пробный урок</button>
         <div style="font-size:12px;color:#888;text-align:center;margin-top:12px;line-height:1.5;">
