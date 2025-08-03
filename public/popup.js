@@ -701,6 +701,44 @@
     return '';
   }
 
+  // Функция для получения fbclid
+  function getFbclid() {
+    try {
+      // 1. Из URL параметра fbclid
+      const urlParams = new URLSearchParams(window.location.search);
+      const fbclidFromQuery = urlParams.get('fbclid');
+      if (fbclidFromQuery) {
+        console.log('[FBCLID] Найден в query параметрах:', fbclidFromQuery);
+        return fbclidFromQuery;
+      }
+      
+      // 2. Из URL параметра fbclid в hash
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const fbclidFromHash = hashParams.get('fbclid');
+      if (fbclidFromHash) {
+        console.log('[FBCLID] Найден в hash параметрах:', fbclidFromHash);
+        return fbclidFromHash;
+      }
+      
+      // 3. Альтернативный способ - через regex
+      const url = window.location.href;
+      const fbclidMatch = url.match(/[?&]fbclid=([^&#]*)/);
+      if (fbclidMatch && fbclidMatch[1]) {
+        console.log('[FBCLID] Найден через regex:', fbclidMatch[1]);
+        return decodeURIComponent(fbclidMatch[1]);
+      }
+      
+      console.log('[FBCLID] Не найден в URL');
+      console.log('[FBCLID] Текущий URL:', window.location.href);
+      console.log('[FBCLID] Query параметры:', window.location.search);
+      console.log('[FBCLID] Hash параметры:', window.location.hash);
+      return '';
+    } catch (error) {
+      console.error('[FBCLID] Ошибка при извлечении fbclid:', error);
+      return '';
+    }
+  }
+
   // Submit form
   async function submitForm(formData) {
     try {
@@ -708,6 +746,8 @@
       const roistat_visit = getRoistatVisit();
       const site_url = window.location.href;
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const fbclid = getFbclid();
+      console.log('[SUBMIT] Отправляем данные:', { phone, roistat_visit, site_url, timezone, fbclid });
       const submitBtn = document.querySelector('.callback-submit');
       const phoneInput = document.querySelector('.callback-input[name="phone"]');
       const phoneField = phoneInput?.closest('.callback-field');
@@ -726,7 +766,8 @@
           phone: phone,
           roistat_visit: roistat_visit,
           site_url: site_url,
-          timezone: timezone
+          timezone: timezone,
+          fbclid: fbclid
         })
       });
       const result = await response.json();

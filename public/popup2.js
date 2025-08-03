@@ -133,6 +133,44 @@
     return '';
   }
 
+  // Функция для получения fbclid
+  function getFbclid() {
+    try {
+      // 1. Из URL параметра fbclid
+      const urlParams = new URLSearchParams(window.location.search);
+      const fbclidFromQuery = urlParams.get('fbclid');
+      if (fbclidFromQuery) {
+        console.log('[FBCLID] Найден в query параметрах:', fbclidFromQuery);
+        return fbclidFromQuery;
+      }
+      
+      // 2. Из URL параметра fbclid в hash
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const fbclidFromHash = hashParams.get('fbclid');
+      if (fbclidFromHash) {
+        console.log('[FBCLID] Найден в hash параметрах:', fbclidFromHash);
+        return fbclidFromHash;
+      }
+      
+      // 3. Альтернативный способ - через regex
+      const url = window.location.href;
+      const fbclidMatch = url.match(/[?&]fbclid=([^&#]*)/);
+      if (fbclidMatch && fbclidMatch[1]) {
+        console.log('[FBCLID] Найден через regex:', fbclidMatch[1]);
+        return decodeURIComponent(fbclidMatch[1]);
+      }
+      
+      console.log('[FBCLID] Не найден в URL');
+      console.log('[FBCLID] Текущий URL:', window.location.href);
+      console.log('[FBCLID] Query параметры:', window.location.search);
+      console.log('[FBCLID] Hash параметры:', window.location.hash);
+      return '';
+    } catch (error) {
+      console.error('[FBCLID] Ошибка при извлечении fbclid:', error);
+      return '';
+    }
+  }
+
   // --- Step 1 ---
   // Динамический social proof (фиксированный на день)
   function seededRandom(seed) {
@@ -236,13 +274,15 @@
     savedPage = window.location.href;
     savedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const roistat_visit = getRoistatVisit();
-    // Отправляем первый этап (только телефон, страница, таймзона, roistat_visit)
+    const fbclid = getFbclid();
+    // Отправляем первый этап (только телефон, страница, таймзона, roistat_visit, fbclid)
     const result = await sendWebhook({
       popupId: CONFIG.popupId,
       phone: phone,
       site_url: savedPage,
       timezone: savedTimezone,
-      roistat_visit: roistat_visit
+      roistat_visit: roistat_visit,
+      fbclid: fbclid
     });
     if (!result.success) {
       showMessage1(result.error, 'error');
@@ -333,6 +373,7 @@
     form.call_time.classList.remove('error');
     showMessage2('', '');
     const roistat_visit = getRoistatVisit();
+    const fbclid = getFbclid();
     // Формируем comment
     const comment = `Возраст ребёнка: ${child_age}, Удобное время для звонка: ${call_time}, Часовой пояс: ${savedTimezone}`;
     // Логируем отправляемые данные
@@ -346,7 +387,8 @@
       comment: comment,
       site_url: savedPage,
       timezone: savedTimezone,
-      roistat_visit: roistat_visit
+      roistat_visit: roistat_visit,
+      fbclid: fbclid
     };
     console.log('[popup2.js] Отправка данных второго этапа:', dataToSend);
     // Отправляем второй этап (все поля)

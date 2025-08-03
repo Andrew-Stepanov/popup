@@ -20,7 +20,8 @@ db.run(`
     full_json TEXT,
     site_url TEXT,
     timezone TEXT,
-    child_age TEXT
+    child_age TEXT,
+    fbclid TEXT
   )
 `);
 
@@ -41,7 +42,10 @@ const popups = require('./data/popups');
 // Webhook endpoint
 app.post('/api/webhook', (req, res) => {
   try {
-    const { popupId, name, phone, email, comment, child_age } = req.body;
+    const { popupId, name, phone, email, comment, child_age, fbclid } = req.body;
+    
+    console.log('[WEBHOOK] Получен запрос:', { popupId, name, phone, email, comment, child_age, fbclid });
+    console.log('[WEBHOOK] Полный body:', req.body);
     
     // Validation
     if (!phone) {
@@ -78,7 +82,8 @@ app.post('/api/webhook', (req, res) => {
         source: popupId,
         popup_label: popupConfig.label,
         site_url: site_url,
-        timezone: timezone
+        timezone: timezone,
+        fbclid: fbclid
       }
     };
 
@@ -93,12 +98,13 @@ app.post('/api/webhook', (req, res) => {
       full_json: JSON.stringify(req.body),
       site_url,
       timezone,
-      child_age: child_age || ''
+      child_age: child_age || '',
+      fbclid: fbclid || ''
     };
     db.run(
-      `INSERT INTO submissions (phone, popupId, roistat_visit, created_at, status, webhook_response, full_json, site_url, timezone, child_age)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [submission.phone, submission.popupId, submission.roistat_visit, submission.created_at, submission.status, submission.webhook_response, submission.full_json, submission.site_url, submission.timezone, submission.child_age],
+      `INSERT INTO submissions (phone, popupId, roistat_visit, created_at, status, webhook_response, full_json, site_url, timezone, child_age, fbclid)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [submission.phone, submission.popupId, submission.roistat_visit, submission.created_at, submission.status, submission.webhook_response, submission.full_json, submission.site_url, submission.timezone, submission.child_age, submission.fbclid],
       function(err) {
         if (err) {
           console.error('[DB] Ошибка сохранения заявки:', err.message);
